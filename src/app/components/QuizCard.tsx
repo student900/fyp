@@ -40,27 +40,39 @@ export function QuizCard({
   const getOptionStyle = (index: number) => {
     if (!hasAnswered) {
       return selectedAnswer === index
-        ? 'border-purple-500 bg-purple-50'
-        : 'border-gray-300 hover:border-purple-400 bg-white';
+        ? 'border-cyan-300 bg-cyan-400/15'
+        : 'border-slate-600 hover:border-cyan-300/70 bg-slate-900/45';
     }
 
     if (index === correctAnswer) {
-      return 'border-green-500 bg-green-50';
+      return 'border-emerald-300 bg-emerald-400/15';
     }
 
     if (selectedAnswer === index && index !== correctAnswer) {
-      return 'border-red-500 bg-red-50';
+      return 'border-red-300 bg-red-400/15';
     }
 
-    return 'border-gray-200 bg-gray-50';
+    return 'border-slate-700 bg-slate-900/35';
+  };
+
+  const getAiFeedback = () => {
+    if (!hasAnswered || selectedAnswer === null) {
+      return '';
+    }
+
+    if (selectedAnswer === correctAnswer) {
+      return 'AI Coach: Excellent choice. Your sign recognition is getting stronger each round.';
+    }
+
+    return `AI Coach: Great attempt. Keep going, and compare your choice with option ${String.fromCharCode(65 + correctAnswer)} to improve your accuracy.`;
   };
 
   return (
-    <Card className="p-8 border border-gray-200 shadow-lg bg-white">
+    <Card className="p-8 game-soft-panel rounded-2xl">
       <div className="space-y-6">
         {/* Progress */}
         <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold text-purple-600 bg-purple-50 px-4 py-2 rounded-lg">
+          <span className="text-sm font-semibold text-cyan-100 bg-cyan-400/15 border border-cyan-300/35 px-4 py-2 rounded-lg">
             Question {currentQuestion} of {totalQuestions}
           </span>
           <div className="flex gap-1">
@@ -68,9 +80,9 @@ export function QuizCard({
               <div
                 key={idx}
                 className={`w-8 h-1.5 rounded-full ${
-                  idx < currentQuestion - 1 ? 'bg-green-500' :
-                  idx === currentQuestion - 1 ? 'bg-purple-600' :
-                  'bg-gray-200'
+                  idx < currentQuestion - 1 ? 'bg-emerald-300' :
+                  idx === currentQuestion - 1 ? 'bg-cyan-300' :
+                  'bg-slate-700'
                 }`}
               />
             ))}
@@ -79,7 +91,7 @@ export function QuizCard({
 
         {/* Question */}
         <div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">{question}</h3>
+          <h3 className="text-2xl font-bold text-slate-100 mb-4">{question}</h3>
         </div>
 
         {/* Options */}
@@ -97,24 +109,24 @@ export function QuizCard({
                 <div className="flex items-center gap-3">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-semibold text-sm ${
                     !hasAnswered && selectedAnswer === index
-                      ? 'bg-purple-600 text-white'
+                      ? 'bg-cyan-400 text-slate-950'
                       : hasAnswered && index === correctAnswer
-                      ? 'bg-green-600 text-white'
+                      ? 'bg-emerald-400 text-slate-950'
                       : hasAnswered && selectedAnswer === index && index !== correctAnswer
-                      ? 'bg-red-600 text-white'
-                      : 'bg-gray-200 text-gray-600'
+                      ? 'bg-red-400 text-slate-950'
+                      : 'bg-slate-700 text-slate-300'
                   }`}>
                     {String.fromCharCode(65 + index)}
                   </div>
-                  <span className="text-gray-900">{option}</span>
+                  <span className="text-slate-100">{option}</span>
                 </div>
                 {hasAnswered && (
                   <div>
                     {index === correctAnswer && (
-                      <CheckCircle2 className="w-6 h-6 text-green-600" />
+                      <CheckCircle2 className="w-6 h-6 text-emerald-300" />
                     )}
                     {selectedAnswer === index && index !== correctAnswer && (
-                      <XCircle className="w-6 h-6 text-red-600" />
+                      <XCircle className="w-6 h-6 text-red-300" />
                     )}
                   </div>
                 )}
@@ -128,7 +140,7 @@ export function QuizCard({
           <Button
             onClick={handleSubmit}
             disabled={selectedAnswer === null}
-            className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400"
+            className="w-full bg-cyan-500 text-slate-950 hover:bg-cyan-400 disabled:bg-slate-700 disabled:text-slate-300"
             size="lg"
           >
             {selectedAnswer === null ? 'Select an Answer' : 'Submit Answer'}
@@ -139,16 +151,21 @@ export function QuizCard({
         {hasAnswered && (
           <div className={`p-4 rounded-lg border-2 ${
               selectedAnswer === correctAnswer
-                ? 'bg-green-50 border-green-300'
-                : 'bg-red-50 border-red-300'
+                ? 'bg-emerald-400/15 border-emerald-300/40'
+                : 'bg-red-400/15 border-red-300/40'
             }`}
           >
             <p className={`font-semibold ${
-              selectedAnswer === correctAnswer ? 'text-green-900' : 'text-red-900'
+              selectedAnswer === correctAnswer ? 'text-emerald-100' : 'text-red-100'
             }`}>
               {selectedAnswer === correctAnswer
                 ? 'Correct! Well done.'
                 : 'Incorrect. The correct answer is highlighted above.'}
+            </p>
+            <p className={`mt-2 text-sm ${
+              selectedAnswer === correctAnswer ? 'text-emerald-200' : 'text-red-200'
+            }`}>
+              {getAiFeedback()}
             </p>
           </div>
         )}

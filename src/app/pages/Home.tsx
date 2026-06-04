@@ -1,168 +1,162 @@
+import { useMemo } from 'react';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import {
-  BookOpen,
-  Trophy,
-  Camera,
-  ArrowRight,
-  Award,
-  Zap,
-  Users,
-  Target
-} from 'lucide-react';
+import { BookOpen, Camera, ArrowRight, Target, Star, Flame, Sparkles, Trophy, Brain } from 'lucide-react';
 import { Link } from 'react-router';
+import { alphabetLessons } from '../data/alphabetLessons';
+
+interface PracticeProgress {
+  unlockedIndex: number;
+  completedIds: string[];
+  totalPoints: number;
+}
+
+const PROGRESS_STORAGE_KEY = 'asl.practice.progress.v2';
+
+function getProgress(): PracticeProgress {
+  const defaultValue: PracticeProgress = {
+    unlockedIndex: 0,
+    completedIds: [],
+    totalPoints: 0,
+  };
+
+  const raw = localStorage.getItem(PROGRESS_STORAGE_KEY);
+  if (!raw) {
+    return defaultValue;
+  }
+
+  try {
+    return JSON.parse(raw) as PracticeProgress;
+  } catch {
+    return defaultValue;
+  }
+}
 
 export function Home() {
-  const features = [
-    {
-      icon: BookOpen,
-      title: 'Learn',
-      description: 'Master the ASL alphabet with comprehensive video tutorials and step-by-step instructions',
-      color: 'from-blue-500 to-blue-600',
-      path: '/learn',
-      stats: '26 Letters'
-    },
-    {
-      icon: Trophy,
-      title: 'Quiz',
-      description: 'Test your knowledge with interactive quizzes and get instant feedback on your progress',
-      color: 'from-purple-500 to-purple-600',
-      path: '/quiz',
-      stats: 'Multiple Levels'
-    },
-    {
-      icon: Camera,
-      title: 'Practice',
-      description: 'Practice with webcam recognition and receive real-time AI-powered feedback',
-      color: 'from-green-500 to-teal-600',
-      path: '/practice',
-      stats: 'Live Recognition'
-    }
-  ];
+  const userName = localStorage.getItem('asl.user.name') || 'Learner';
+  const totalLessons = alphabetLessons.length;
+  const progress = getProgress();
+  const completedCount = progress.completedIds.length;
+  const unlockedCount = Math.min(progress.unlockedIndex + 1, totalLessons);
 
-  const stats = [
-    { icon: Award, label: 'Total Lessons', value: '26', color: 'text-blue-600', bgColor: 'bg-blue-100' },
-    { icon: Target, label: 'Quiz Questions', value: '50+', color: 'text-purple-600', bgColor: 'bg-purple-100' },
-    { icon: Zap, label: 'Practice Sessions', value: '∞', color: 'text-green-600', bgColor: 'bg-green-100' },
-    { icon: Users, label: 'Active Players', value: '1K+', color: 'text-orange-600', bgColor: 'bg-orange-100' }
-  ];
+  const overallProgress = useMemo(() => {
+    if (totalLessons === 0) {
+      return 0;
+    }
+    return Math.round((completedCount / totalLessons) * 100);
+  }, [completedCount, totalLessons]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className="game-page">
+      <div className="max-w-6xl mx-auto px-4 py-12 relative z-10">
+        <div className="mb-10">
+          <p className="inline-flex items-center gap-2 px-3 py-1 rounded-full game-pill text-xs font-semibold uppercase tracking-[0.14em]">
+            <Sparkles className="w-3.5 h-3.5" />
+            Daily Learning Arena
+          </p>
+          <h1 className="text-5xl font-bold text-slate-100 mb-3 mt-4 game-title-glow">Welcome back, {userName}</h1>
+          <p className="text-lg text-slate-300 max-w-2xl">Build momentum with short wins. Every sign mastered unlocks the next level of confidence.</p>
+        </div>
 
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 py-16 sm:py-24">
-          <div className="text-center space-y-8">
-            <div className="inline-block px-6 py-2 bg-purple-100 rounded-full">
-              <span className="text-sm font-semibold text-purple-700">Interactive ASL Learning</span>
+        <Card className="p-8 game-panel rounded-2xl mb-8">
+          <div className="grid md:grid-cols-4 gap-4 mb-5">
+            <div className="game-soft-panel rounded-xl p-4">
+              <p className="text-slate-300 text-sm">Overall Progress</p>
+              <p className="text-cyan-300 text-3xl font-bold">{overallProgress}%</p>
             </div>
-
-            <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-gray-900 leading-tight">
-              Learn Sign Language
-              <br />
-              <span className="text-purple-600">
-                The Modern Way
-              </span>
-            </h1>
-
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Master American Sign Language through interactive lessons,
-              quizzes, and practice sessions with real-time feedback.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <Link to="/learn">
-                <Button size="lg" className="text-lg px-8 py-6 bg-purple-600 hover:bg-purple-700">
-                  Start Learning
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </Link>
-              <Link to="/practice">
-                <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-2 border-purple-600 text-purple-600 hover:bg-purple-50">
-                  <Camera className="w-5 h-5 mr-2" />
-                  Try Practice
-                </Button>
-              </Link>
+            <div className="game-soft-panel rounded-xl p-4">
+              <p className="text-slate-300 text-sm">Completed</p>
+              <p className="text-emerald-300 text-3xl font-bold">{completedCount}</p>
+            </div>
+            <div className="game-soft-panel rounded-xl p-4">
+              <p className="text-slate-300 text-sm">Unlocked</p>
+              <p className="text-amber-300 text-3xl font-bold">{unlockedCount}</p>
+            </div>
+            <div className="game-soft-panel rounded-xl p-4 float-subtle">
+              <p className="text-slate-300 text-sm">Points</p>
+              <p className="text-violet-300 text-3xl font-bold">{progress.totalPoints}</p>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Stats Section */}
-      <div className="max-w-7xl mx-auto px-4 pb-16">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {stats.map((stat, idx) => (
-            <Card key={idx} className="p-6 text-center bg-white border border-gray-200 hover:shadow-lg transition-shadow">
-              <div className={`${stat.bgColor} w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3`}>
-                <stat.icon className={`w-6 h-6 ${stat.color}`} />
-              </div>
-              <p className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</p>
-              <p className="text-sm text-gray-600">{stat.label}</p>
-            </Card>
-          ))}
-        </div>
-      </div>
-
-      {/* Features Section */}
-      <div className="max-w-7xl mx-auto px-4 pb-24">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Choose Your <span className="text-purple-600">Learning Path</span>
-          </h2>
-          <p className="text-gray-600 text-lg">Three interactive modes to master sign language</p>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-8">
-          {features.map((feature, idx) => (
-            <Card key={idx} className="overflow-hidden hover:shadow-lg transition-shadow border border-gray-200 bg-white">
-              <div className="p-8">
-                <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-6`}>
-                  <feature.icon className="w-8 h-8 text-white" />
-                </div>
-
-                <div className="mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{feature.title}</h3>
-                  <div className="inline-block px-3 py-1 bg-purple-50 rounded-full mb-3">
-                    <span className="text-xs font-semibold text-purple-700">{feature.stats}</span>
-                  </div>
-                  <p className="text-gray-600 leading-relaxed">{feature.description}</p>
-                </div>
-
-                <Link to={feature.path}>
-                  <Button className={`w-full bg-gradient-to-r ${feature.color}`} size="lg">
-                    Get Started
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
-              </div>
-            </Card>
-          ))}
-        </div>
-      </div>
-
-      {/* CTA Section */}
-      <div className="max-w-7xl mx-auto px-4 pb-24">
-        <Card className="bg-gradient-to-r from-purple-600 to-pink-600 overflow-hidden">
-          <div className="p-12 text-center">
-            <h2 className="text-4xl font-bold text-white mb-4">Ready to Get Started?</h2>
-            <p className="text-white/90 text-lg mb-8 max-w-2xl mx-auto">
-              Join thousands learning American Sign Language with our interactive platform.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/learn">
-                <Button size="lg" className="text-lg px-8 py-6 bg-white text-purple-600 hover:bg-gray-100">
-                  <BookOpen className="w-5 h-5 mr-2" />
-                  Start Learning
-                </Button>
-              </Link>
-              <Link to="/quiz">
-                <Button size="lg" className="text-lg px-8 py-6 bg-purple-800 text-white hover:bg-purple-900">
-                  <Trophy className="w-5 h-5 mr-2" />
-                  Take a Quiz
-                </Button>
-              </Link>
+          <div>
+            <div className="flex items-center justify-between text-sm mb-2">
+              <span className="text-slate-300">Learning Progress</span>
+              <span className="text-slate-100 font-semibold">{overallProgress}%</span>
             </div>
+            <div className="h-3 bg-slate-900/80 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-cyan-400 via-emerald-400 to-sky-300 rounded-full transition-all duration-500" style={{ width: `${overallProgress}%` }} />
+            </div>
+          </div>
+        </Card>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          <Card className="p-8 game-soft-panel rounded-2xl">
+            <div className="w-14 h-14 rounded-xl bg-cyan-400/20 game-accent-border flex items-center justify-center mb-5 glow-pulse">
+              <BookOpen className="w-7 h-7 text-cyan-300" />
+            </div>
+            <h2 className="text-3xl font-bold text-slate-100 mb-3">Learn</h2>
+            <p className="text-slate-300 mb-6">Pick a track, study deeply, and collect knowledge before entering challenge mode.</p>
+            <Link to="/learn">
+              <Button className="w-full bg-cyan-500 text-slate-950 hover:bg-cyan-400" size="lg">
+                Go to Learn
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+          </Card>
+
+          <Card className="p-8 game-soft-panel rounded-2xl">
+            <div className="w-14 h-14 rounded-xl bg-emerald-400/20 border border-emerald-300/40 flex items-center justify-center mb-5">
+              <Camera className="w-7 h-7 text-emerald-300" />
+            </div>
+            <h2 className="text-3xl font-bold text-slate-100 mb-3">Practice</h2>
+            <p className="text-slate-300 mb-6">Use live recognition, clear stage objectives, and level up through each sign challenge.</p>
+            <Link to="/practice">
+              <Button className="w-full bg-emerald-500 text-slate-950 hover:bg-emerald-400" size="lg">
+                Go to Practice
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+          </Card>
+
+          <Card className="p-8 game-soft-panel rounded-2xl">
+            <div className="w-14 h-14 rounded-xl bg-amber-400/20 border border-amber-300/40 flex items-center justify-center mb-5">
+              <Brain className="w-7 h-7 text-amber-200" />
+            </div>
+            <h2 className="text-3xl font-bold text-slate-100 mb-3">Quiz</h2>
+            <p className="text-slate-300 mb-6">Lock in mastery with pressure-free quizzes and instant coach feedback each round.</p>
+            <Link to="/quiz">
+              <Button className="w-full bg-amber-400 text-slate-950 hover:bg-amber-300" size="lg">
+                Go to Quiz
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+          </Card>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-4 mt-8">
+          {[
+            { icon: Target, title: 'Current Mission', value: overallProgress < 100 ? 'Complete next stage' : 'Mastery reached' },
+            { icon: Star, title: 'Total Lessons', value: String(totalLessons) },
+            { icon: Flame, title: 'Current Streak', value: String(completedCount) },
+          ].map((item, idx) => (
+            <Card key={idx} className="p-5 game-soft-panel rounded-xl">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center">
+                  <item.icon className="w-5 h-5 text-cyan-300" />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-400">{item.title}</p>
+                  <p className="text-xl font-bold text-slate-100">{item.value}</p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        <Card className="mt-8 p-5 game-panel rounded-2xl border-emerald-300/30">
+          <div className="flex items-center gap-3 text-emerald-200">
+            <Trophy className="w-5 h-5" />
+            <p className="text-sm">Motivation Boost: You are {Math.max(1, 100 - overallProgress)}% away from your next milestone. Stay consistent and collect small wins.</p>
           </div>
         </Card>
       </div>

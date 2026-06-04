@@ -1,227 +1,196 @@
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useParams } from 'react-router';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { CheckCircle2, Lock, Play, BookOpen, Award, Star, Zap, Trophy, Flame } from 'lucide-react';
-import { alphabetLessons } from '../data/alphabetLessons';
-import { useState } from 'react';
-import { Link } from 'react-router';
-import { AvatarDisplay } from '../components/AvatarDisplay';
-import { AchievementBadge } from '../components/AchievementBadge';
+import { CheckCircle2, BookOpen, ArrowLeft, Zap, Star } from 'lucide-react';
+import { alphabetLessons, masterTutorialVideos } from '../data/alphabetLessons';
 
 export function LearnModule() {
-  const [selectedLesson, setSelectedLesson] = useState(alphabetLessons[0]);
-  const completedCount = alphabetLessons.filter(l => l.completed).length;
-  const progressPercentage = (completedCount / alphabetLessons.length) * 100;
-  const currentLevel = Math.floor(completedCount / 5) + 1;
-  const currentXP = (completedCount % 5) * 20;
+  const { track } = useParams();
+  const lessonType = track === 'greetings' ? 'greeting' : 'alphabet';
 
-  const achievements = [
-    { icon: Star, title: 'First Steps', description: 'Complete first letter', unlocked: completedCount >= 1, color: 'from-blue-500 to-blue-600' },
-    { icon: Flame, title: 'On Fire!', description: 'Complete 5 letters', unlocked: completedCount >= 5, color: 'from-orange-500 to-red-600' },
-    { icon: Trophy, title: 'Champion', description: 'Complete all 26 letters', unlocked: completedCount >= 26, color: 'from-yellow-500 to-orange-500' },
-  ];
+  const filteredLessons = useMemo(
+    () => alphabetLessons.filter((lesson) => lesson.lessonType === lessonType),
+    [lessonType]
+  );
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header with Avatar */}
-        <div className="mb-8">
-          <div className="flex items-start justify-between mb-6">
-            <div className="flex-1">
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                Learn ASL
-              </h1>
-              <p className="text-gray-600 text-lg">Master the ASL alphabet step by step</p>
-            </div>
+  const [selectedLesson, setSelectedLesson] = useState(filteredLessons[0]);
 
-            <AvatarDisplay
-              level={currentLevel}
-              xp={currentXP}
-              maxXp={100}
-              streak={completedCount}
-            />
-          </div>
-          
-          {/* Progress Card */}
-          <Card className="p-6 bg-gradient-to-r from-purple-500 to-purple-600 shadow-lg">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <Trophy className="w-7 h-7 text-white" />
-                <div>
-                  <p className="text-white font-bold text-lg">Course Progress</p>
-                  <p className="text-purple-100 text-sm">Keep up the great work</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-4xl font-bold text-white">{completedCount}</p>
-                <p className="text-purple-100 text-sm">/ {alphabetLessons.length} Letters</p>
-              </div>
-            </div>
+  useEffect(() => {
+    setSelectedLesson(filteredLessons[0]);
+  }, [filteredLessons]);
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-purple-100 font-medium">Overall Progress</span>
-                <span className="font-semibold text-white">{Math.round(progressPercentage)}%</span>
-              </div>
-              <div className="h-3 bg-purple-700 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-white rounded-full transition-all duration-500"
-                  style={{ width: `${progressPercentage}%` }}
-                />
-              </div>
-            </div>
+  if (!selectedLesson) {
+    return (
+      <div className="game-page p-6">
+        <div className="max-w-3xl mx-auto">
+          <Card className="p-8 game-panel text-center rounded-2xl">
+            <h2 className="text-2xl font-bold text-slate-100 mb-2">No lessons available</h2>
+            <p className="text-slate-300 mb-6">This track does not have content yet.</p>
+            <Link to="/learn">
+              <Button className="bg-cyan-500 text-slate-950 hover:bg-cyan-400">Back to Track Selection</Button>
+            </Link>
           </Card>
         </div>
+      </div>
+    );
+  }
+
+  const completedCount = filteredLessons.filter((lesson) => lesson.completed).length;
+  const progressPercentage = (completedCount / filteredLessons.length) * 100;
+  const trackTitle = lessonType === 'alphabet' ? 'Alphabet Track' : 'Greetings Track';
+  const trackDescription =
+    lessonType === 'alphabet'
+      ? 'Learn ASL letters with focused examples and guided key points.'
+      : 'Learn greeting signs with movement-oriented examples and guided key points.';
+  const trackVideo = lessonType === 'alphabet' ? masterTutorialVideos.alphabet : masterTutorialVideos.greeting;
+
+  return (
+    <div className="game-page">
+      <div className="max-w-7xl mx-auto px-4 py-8 relative z-10">
+        <div className="mb-6">
+          <Link to="/learn" className="inline-flex items-center gap-2 text-cyan-300 hover:text-cyan-200 text-sm font-medium">
+            <ArrowLeft className="w-4 h-4" />
+            Back to track selection
+          </Link>
+        </div>
+
+        <div className="mb-8">
+          <p className="inline-flex items-center gap-2 px-3 py-1 rounded-full game-pill text-xs font-semibold uppercase tracking-[0.14em] mb-4">Live Track</p>
+          <h1 className="text-4xl font-bold text-slate-100 mb-2 game-title-glow">{trackTitle}</h1>
+          <p className="text-slate-300 text-lg">{trackDescription}</p>
+        </div>
+
+        <Card className="p-6 game-panel rounded-2xl mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-slate-100 font-bold text-lg">Track Progress</p>
+              <p className="text-slate-300 text-sm">Complete lessons and reinforce in practice mode</p>
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-bold text-cyan-300">{completedCount}</p>
+              <p className="text-slate-300 text-sm">/ {filteredLessons.length} lessons</p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-slate-300">Progress</span>
+              <span className="text-slate-100 font-semibold">{Math.round(progressPercentage)}%</span>
+            </div>
+            <div className="h-3 bg-slate-900 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-cyan-400 via-emerald-400 to-sky-300 rounded-full transition-all duration-500" style={{ width: `${progressPercentage}%` }} />
+            </div>
+          </div>
+        </Card>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Lesson List */}
-          <div className="lg:col-span-1 space-y-6">
-            <Card className="p-6 border border-gray-200 shadow-lg bg-white">
+          <div className="lg:col-span-1">
+            <Card className="p-6 game-soft-panel rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
-                <BookOpen className="w-5 h-5 text-blue-600" />
-                <h2 className="font-bold text-gray-900 text-lg">Alphabet Lessons</h2>
+                <BookOpen className="w-5 h-5 text-cyan-300" />
+                <h2 className="font-bold text-slate-100 text-lg">Track Lessons</h2>
               </div>
-              
-              <div className="space-y-2 max-h-[600px] overflow-y-auto">
-                {alphabetLessons.map((lesson) => (
+
+              <div className="space-y-2 max-h-[620px] overflow-y-auto">
+                {filteredLessons.map((lesson) => (
                   <button
-                    key={lesson.letter}
+                    key={lesson.id}
                     onClick={() => setSelectedLesson(lesson)}
                     className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
-                      selectedLesson.letter === lesson.letter
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-blue-300 bg-white'
+                      selectedLesson.id === lesson.id
+                        ? 'border-cyan-300 bg-cyan-400/10'
+                        : 'border-slate-700 hover:border-cyan-400/60 bg-slate-900/40'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg ${
-                            lesson.completed
-                              ? 'bg-green-500 text-white'
-                              : 'bg-gray-200 text-gray-600'
-                          }`}
-                        >
-                          {lesson.letter}
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold ${
+                          lesson.completed ? 'bg-emerald-500 text-slate-950' : 'bg-slate-700 text-slate-200'
+                        }`}>
+                          {lessonType === 'alphabet' ? lesson.letter : lesson.letter[0]}
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900 text-sm">{lesson.title}</p>
-                          <Badge
-                            className={`mt-1 text-xs ${
-                              lesson.difficulty === 'easy'
-                                ? 'bg-green-100 text-green-700'
-                                : lesson.difficulty === 'medium'
-                                ? 'bg-yellow-100 text-yellow-700'
-                                : 'bg-red-100 text-red-700'
-                            }`}
-                          >
+                          <p className="font-semibold text-sm text-slate-100">{lesson.title}</p>
+                          <Badge className={`mt-1 text-xs ${
+                            lesson.difficulty === 'easy'
+                              ? 'bg-emerald-400/20 text-emerald-200 border border-emerald-300/40'
+                              : lesson.difficulty === 'medium'
+                              ? 'bg-amber-400/20 text-amber-200 border border-amber-300/40'
+                              : 'bg-red-400/20 text-red-200 border border-red-300/40'
+                          }`}>
                             {lesson.difficulty}
                           </Badge>
                         </div>
                       </div>
-                      {lesson.completed ? (
-                        <CheckCircle2 className="w-5 h-5 text-green-600" />
-                      ) : (
-                        <Lock className="w-4 h-4 text-gray-400" />
-                      )}
+
+                      {lesson.completed && <CheckCircle2 className="w-4 h-4 text-emerald-300" />}
                     </div>
                   </button>
                 ))}
               </div>
             </Card>
-
-            {/* Achievements */}
-            <Card className="p-6 border border-gray-200 shadow-lg bg-white">
-              <div className="flex items-center gap-2 mb-4">
-                <Award className="w-5 h-5 text-purple-600" />
-                <h3 className="font-bold text-gray-900 text-lg">Achievements</h3>
-              </div>
-              <div className="space-y-3">
-                {achievements.map((achievement, idx) => (
-                  <AchievementBadge
-                    key={idx}
-                    icon={achievement.icon}
-                    title={achievement.title}
-                    description={achievement.description}
-                    unlocked={achievement.unlocked}
-                    color={achievement.color}
-                  />
-                ))}
-              </div>
-            </Card>
           </div>
 
-          {/* Lesson Detail */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Video Section */}
-            <div>
-              <Card className="overflow-hidden border border-gray-200 shadow-lg">
-                <div className="aspect-video bg-gradient-to-br from-purple-900 to-purple-800 flex items-center justify-center relative">
-                  <div className="text-center space-y-4 relative z-10">
-                    <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto cursor-pointer hover:bg-white/30 transition-colors">
-                      <Play className="w-10 h-10 text-white ml-1" />
-                    </div>
-                    <p className="text-white text-lg font-semibold">Video Tutorial: Letter {selectedLesson.letter}</p>
-                    <p className="text-purple-200 text-sm">Click to play demonstration</p>
-                  </div>
+            <Card className="p-4 game-soft-panel rounded-2xl">
+              <h3 className="font-bold text-slate-100 mb-2">Master {trackTitle} Tutorial</h3>
+              <div className="aspect-video rounded-lg overflow-hidden border border-slate-700">
+                <iframe
+                  className="w-full h-full"
+                  src={trackVideo}
+                  title={`${trackTitle} tutorial`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                />
+              </div>
+            </Card>
 
-                  {/* Letter Badge */}
-                  <div className="absolute top-4 left-4">
-                    <div className="bg-white/95 px-5 py-2 rounded-xl shadow-lg">
-                      <span className="text-4xl font-bold text-purple-600">{selectedLesson.letter}</span>
-                    </div>
-                  </div>
+            <Card className="game-soft-panel rounded-2xl">
+              <div className="p-6 space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <Badge className="bg-cyan-400/20 text-cyan-200 border border-cyan-300/40">Current Sign: {selectedLesson.letter}</Badge>
+                  <Badge className="capitalize text-sm px-3 py-1 bg-cyan-400/20 text-cyan-200 border border-cyan-300/40">
+                    {selectedLesson.difficulty}
+                  </Badge>
+                </div>
 
-                  {/* Difficulty Badge */}
-                  <div className="absolute top-4 right-4">
-                    <Badge className="capitalize text-sm px-3 py-1 bg-purple-100 text-purple-700">
-                      {selectedLesson.difficulty}
-                    </Badge>
+                <div>
+                  <h3 className="text-2xl font-bold text-slate-100 mb-2">{selectedLesson.title}</h3>
+                  <p className="text-slate-300">{selectedLesson.description}</p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-slate-100 mb-3">Key Points</h4>
+                  <div className="space-y-2">
+                    {selectedLesson.keyPoints.map((point, idx) => (
+                      <div key={idx} className="flex items-start gap-3 p-3 bg-slate-900/60 rounded-lg border border-slate-700">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-300 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm text-slate-200">{point}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                
-                <div className="p-6 space-y-4 bg-white">
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{selectedLesson.title}</h3>
-                    <p className="text-gray-600">{selectedLesson.description}</p>
-                  </div>
 
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-3">Key Points:</h4>
-                    <div className="space-y-2">
-                      {selectedLesson.keyPoints.map((point, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
-                        >
-                          <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                          <span className="text-gray-700 text-sm">{point}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3 pt-4">
-                    <Button className="flex-1 bg-green-600 hover:bg-green-700" size="lg">
-                      {selectedLesson.completed ? 'Completed' : 'Mark Complete'}
+                <div className="flex gap-3 pt-2">
+                  <Link to="/practice" className="flex-1">
+                    <Button className="w-full bg-cyan-500 text-slate-950 hover:bg-cyan-400" size="lg">
+                      Go to Practice
                     </Button>
-                    <Link to="/practice" className="flex-1">
-                      <Button variant="outline" className="w-full h-full border-2 border-purple-600 text-purple-600 hover:bg-purple-50" size="lg">
-                        Practice
-                      </Button>
-                    </Link>
-                  </div>
+                  </Link>
                 </div>
-              </Card>
-            </div>
+              </div>
+            </Card>
 
-            {/* Quick Stats */}
             <div className="grid grid-cols-3 gap-4">
               {[
-                { value: completedCount, label: 'Completed', icon: CheckCircle2, color: 'bg-green-100 text-green-700' },
-                { value: alphabetLessons.length - completedCount, label: 'Remaining', icon: Zap, color: 'bg-orange-100 text-orange-700' },
-                { value: alphabetLessons.length, label: 'Total', icon: Star, color: 'bg-purple-100 text-purple-700' },
+                { value: completedCount, label: 'Completed', icon: CheckCircle2, color: 'bg-emerald-400/20 text-emerald-200 border border-emerald-300/40' },
+                { value: filteredLessons.length - completedCount, label: 'Remaining', icon: Zap, color: 'bg-amber-400/20 text-amber-200 border border-amber-300/40' },
+                { value: filteredLessons.length, label: 'Track Total', icon: Star, color: 'bg-cyan-400/20 text-cyan-200 border border-cyan-300/40' },
               ].map((stat, idx) => (
-                <Card key={idx} className={`p-6 text-center ${stat.color}`}>
+                <Card key={idx} className={`p-6 text-center rounded-xl ${stat.color}`}>
                   <stat.icon className="w-6 h-6 mb-2 mx-auto" />
                   <p className="text-3xl font-bold mb-1">{stat.value}</p>
                   <p className="text-sm font-medium">{stat.label}</p>
